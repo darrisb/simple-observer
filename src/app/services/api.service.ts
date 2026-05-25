@@ -9,8 +9,31 @@ import { getMockResponse, normalizeEndpoint } from '../mocks/mock-api';
 })
 export class ApiService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl;
+  private apiUrl = this.normalizeApiUrl(environment.apiUrl);
   private useMockApi = environment.useMockApi;
+
+  private normalizeApiUrl(url: string): string {
+    const trimmed = (url || '').trim();
+    if (!trimmed) {
+      return '';
+    }
+
+    // Handle malformed scheme like "https:api.myobserver.io".
+    if (/^https?:[^/]/i.test(trimmed)) {
+      return trimmed.replace(/^([a-z]+:)/i, '$1//').replace(/\/+$/, '');
+    }
+
+    return trimmed.replace(/\/+$/, '');
+  }
+
+  private buildUrl(endpoint: string): string {
+    if (endpoint.startsWith('http')) {
+      return endpoint;
+    }
+
+    const cleanEndpoint = endpoint.replace(/^\/+/, '');
+    return this.apiUrl ? `${this.apiUrl}/${cleanEndpoint}` : `/${cleanEndpoint}`;
+  }
 
   private isWordPressEndpoint(url: string): boolean {
     return /\/wp-admin\/admin-ajax\.php(\?|$)/i.test(url)
@@ -35,9 +58,7 @@ export class ApiService {
     }
 
     // 1. Build the base URL correctly
-    const url = endpoint.startsWith('http')
-      ? endpoint
-      : `${this.apiUrl}/${endpoint}`;
+    const url = this.buildUrl(endpoint);
 
     // 2. Consolidate params and headers into a single options object
     const options = {
@@ -58,9 +79,7 @@ export class ApiService {
 
     // Use provided headers or default to empty object
     // If endpoint is a full URL (like admin-ajax.php), don't prepend apiUrl
-    const url = endpoint.startsWith('http')
-      ? endpoint
-      : `${this.apiUrl}/${endpoint}`;
+    const url = this.buildUrl(endpoint);
 
     const httpOptions = {
       headers: new HttpHeaders(headers || {}),
@@ -75,7 +94,7 @@ export class ApiService {
       return this.getMockData<T>('PUT', endpoint, body);
     }
 
-    return this.http.put<T>(`${this.apiUrl}/${endpoint}`, body);
+    return this.http.put<T>(this.buildUrl(endpoint), body);
   }
 
   delete<T>(endpoint: string): Observable<T> {
@@ -83,7 +102,7 @@ export class ApiService {
       return this.getMockData<T>('DELETE', endpoint);
     }
 
-    return this.http.delete<T>(`${this.apiUrl}/${endpoint}`);
+    return this.http.delete<T>(this.buildUrl(endpoint));
   }
 
   getApiUrl() {
