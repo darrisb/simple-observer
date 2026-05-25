@@ -12,6 +12,12 @@ export class ApiService {
   private apiUrl = environment.apiUrl;
   private useMockApi = environment.useMockApi;
 
+  private isWordPressEndpoint(url: string): boolean {
+    return /\/wp-admin\/admin-ajax\.php(\?|$)/i.test(url)
+      || /\/wp-json\//i.test(url)
+      || /[?&]rest_route=/i.test(url);
+  }
+
   private getMockData<T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', endpoint: string, body?: unknown): Observable<T> {
     const normalizedEndpoint = normalizeEndpoint(endpoint);
     const mockResponse = getMockResponse(method, normalizedEndpoint, body);
@@ -36,7 +42,8 @@ export class ApiService {
     // 2. Consolidate params and headers into a single options object
     const options = {
       params: params,
-      headers: new HttpHeaders(headers || {})
+      headers: new HttpHeaders(headers || {}),
+      withCredentials: this.isWordPressEndpoint(url)
     };
 
     // 3. Pass the consolidated options to the GET call
@@ -50,14 +57,15 @@ export class ApiService {
     }
 
     // Use provided headers or default to empty object
-    const httpOptions = {
-      headers: new HttpHeaders(headers || {})
-    };
-
     // If endpoint is a full URL (like admin-ajax.php), don't prepend apiUrl
     const url = endpoint.startsWith('http')
       ? endpoint
       : `${this.apiUrl}/${endpoint}`;
+
+    const httpOptions = {
+      headers: new HttpHeaders(headers || {}),
+      withCredentials: this.isWordPressEndpoint(url)
+    };
 
     return this.http.post<T>(url, body, httpOptions);
   }

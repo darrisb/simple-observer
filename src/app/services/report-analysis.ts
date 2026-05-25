@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { catchError } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 interface WordPressErrorRow {
@@ -25,44 +25,52 @@ interface WordPressLogsResponse {
   providedIn: 'root',
 })
 export class ReportAnalysisService {
-  // Use the config injected by PHP, or fallback to localStorage
-  // Make sure 'AI_CONFIG' matches your PHP script!
-  wpConfig = (window as any).AI_CONFIG;
+  // Prefer the current prefixed config, fall back to legacy config key.
+  wpConfig = (window as any).MYOBRM_CONFIG ?? (window as any).AI_CONFIG;
 
   constructor(private apiService: ApiService) {}
 
-  private getFallbackLogs() {
-    return this.apiService.get<any>('api/dashboard/query').pipe(
-      map((response) => ({
-        errors: this.normalizeErrors(response?.errors ?? [])
-      }))
-    );
+  private getWordPressBaseUrl() {
+    const ajaxUrl = this.wpConfig?.apiUrl;
+    if (typeof ajaxUrl === 'string' && ajaxUrl.startsWith('http')) {
+      try {
+        const parsed = new URL(ajaxUrl);
+        const sitePath = parsed.pathname.replace(/\/wp-admin\/admin-ajax\.php\/?$/i, '');
+        return `${parsed.origin}${sitePath}`.replace(/\/+$/, '');
+      } catch {
+        // Fall back below if the URL cannot be parsed.
+      }
+    }
+
+    return window.location.origin.replace(/\/+$/, '');
+  }
+
+  private buildWordPressUrl(path: string) {
+    const base = this.getWordPressBaseUrl();
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${base}${cleanPath}`;
   }
 
   // 1. Fetching Logs
   getReportAnalysisFromApi() {
-    const action = this.wpConfig?.actions?.getLogs;
+    const action = 'myobrm_get_logs';
     const nonce = this.wpConfig?.nonce;
-    const ajaxUrl = this.wpConfig?.apiUrl;
+    const ajaxUrl = this.wpConfig?.apiUrl || this.buildWordPressUrl('/wp-admin/admin-ajax.php');
 
-    // WordPress mode: fetch directly from admin-ajax endpoint.
-    if (action && nonce && ajaxUrl) {
-      const formData = new FormData();
-      formData.append('action', action);
+    const formData = new FormData();
+    formData.append('action', action);
+    if (nonce) {
       formData.append('nonce', nonce);
-      formData.append('log_type', 'errors');
-      formData.append('limit', '500');
-
-      return this.apiService.post<WordPressLogsResponse>(ajaxUrl, formData).pipe(
-        map((response) => ({
-          errors: this.normalizeErrors(response?.data?.errors ?? [])
-        })),
-        catchError(() => this.getFallbackLogs())
-      );
     }
+    formData.append('log_type', 'errors');
+    formData.append('limit', '500');
 
-    // Fallback mode: legacy API response.
-    return this.getFallbackLogs();
+    return this.apiService.post<WordPressLogsResponse>(ajaxUrl, formData).pipe(
+      map((response) => ({
+        errors: this.normalizeErrors(response?.data?.errors ?? [])
+      })),
+      catchError(() => of({ errors: [] }))
+    );
   }
 
   // 2. Getting AI Explanations
