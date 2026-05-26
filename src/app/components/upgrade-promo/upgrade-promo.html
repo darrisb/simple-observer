@@ -1,0 +1,54 @@
+<section class="promo-shell">
+  @if (isLoading) {
+    <div class="promo-loading" aria-live="polite">Loading upgrade content...</div>
+  } @else {
+    <header class="promo-header">
+      <p class="eyebrow">{{ eyebrow }}</p>
+      <h1>{{ heading }}</h1>
+      <p class="subhead">
+        {{ subhead }}
+      </p>
+    </header>
+
+    @if (hasLoadError) {
+      <div class="promo-error">Unable to load upgrade content right now.</div>
+    }
+
+    <div class="feature-grid">
+      @for (feature of features; track feature.title) {
+        <article class="feature-card">
+          <h2>{{ feature.title }}</h2>
+          <p>{{ feature.description }}</p>
+        </article>
+      }
+      @empty {
+        <article class="feature-card">
+          <h2>No Feature Content</h2>
+          <p>Feature cards are not present in the content endpoint response.</p>
+        </article>
+      }
+    </div>
+
+    <div class="cta-row">
+      @if (isExternal(primaryCta.url)) {
+        <a class="btn primary" [href]="primaryCta.url" target="_blank" rel="noopener noreferrer">
+          {{ primaryCta.label }}
+        </a>
+      } @else {
+        <a class="btn primary" [routerLink]="[primaryCta.url]">
+          {{ primaryCta.label }}
+        </a>
+      }
+
+      @if (isExternal(secondaryCta.url)) {
+        <a class="btn ghost" [href]="secondaryCta.url" target="_blank" rel="noopener noreferrer">
+          {{ secondaryCta.label }}
+        </a>
+      } @else {
+        <a class="btn ghost" [routerLink]="[secondaryCta.url]">
+          {{ secondaryCta.label }}
+        </a>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.dashboard-wrapper {
+  --widget-surface: #101820;
+  --widget-border: #27374a;
+  --widget-shadow: rgba(5, 17, 29, 0.45);
+
+  min-height: 100%;
+  padding: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(16, 76, 90, 0.2), transparent 55%),
+    linear-gradient(180deg, #f4f8fb 0%, #ebf2f8 100%);
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+app-log-viewing {
+  width: min(100%, 380px);
+  display: block;
+}
+
+@media (max-width: 782px) {
+  .dashboard-wrapper {
+    padding: 8px;
+  }
+}
