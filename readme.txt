@@ -1,5 +1,5 @@
 === MyObserver Runtime Error Monitor ===
-Contributors: myobserver, darrisb
+Contributors: darrris banks
 Tags: observability, logging, errors, monitoring, dashboard
 Requires at least: 6.3
 Tested up to: 7.0
@@ -25,8 +25,26 @@ Distinct focus:
 
 Bundled build artifacts:
 - This plugin ships compiled Angular assets in `templates/angular-app/`.
-- Source repository (required for WordPress.org readability compliance): https://github.com/darrisb/myobserver-runtime-error-monitor.git
+- Source repository (required for WordPress.org readability compliance): https://github.com/darrisb/simple-observer
 - Build command example: `npm ci && npm run build`
+
+== External services ==
+
+This plugin connects to the MyObserver API service to power dashboard and premium-related API features in the bundled Angular app.
+
+Service domain:
+- https://api.myobserver.io
+
+What the service is used for:
+- Retrieving premium availability/status and related dashboard content.
+- Sending client-side error telemetry from the dashboard app.
+
+What data is sent and when:
+- No data is sent in the get request. The request is to check and see if the pro version was released. It returns {availability: false | true} true will let the user know pro is available to download if intersted.
+- When client-side dashboard errors happen, the app may send error details such as message, stack trace (if available), page URL, browser user agent, and timestamp.This is to make improvements later with releases.
+
+Service policies:
+- Privacy Policy: https://myobserver.io/privacy
 
 == Installation ==
 
