@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: '',
+  apiUrl: 'http://localhost:3000',
+  // apiUrl: 'https://api.myobserver.io',
   // Toggle here: true = local mock responses, false = real backend API calls.
-  useMockApi: false
+  useMockApi: true
 };

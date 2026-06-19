@@ -2,28 +2,144 @@
   display: block;
 }
 
-.dashboard-wrapper {
-  --widget-surface: #101820;
-  --widget-border: #27374a;
-  --widget-shadow: rgba(5, 17, 29, 0.45);
+.actions-col {
+  white-space: nowrap;
+}
 
-  min-height: 100%;
-  padding: 12px;
-  background:
-    radial-gradient(circle at top left, rgba(16, 76, 90, 0.2), transparent 55%),
-    linear-gradient(180deg, #f4f8fb 0%, #ebf2f8 100%);
+.action-btn,
+.close-btn {
+  border: 1px solid #4f79a8;
+  background: transparent;
+  color: #d8eaff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action-btn:hover,
+.close-btn:hover {
+  background: #17324a;
+}
+
+.badge.level {
+  border-color: #35566f;
+  background: #0f2130;
+  color: #d7ebfb;
+}
+
+:host ::ng-deep .runtime-table {
+  margin-top: 12px;
+}
+
+:host ::ng-deep .runtime-table .p-datatable-table {
+  background: transparent;
+}
+
+:host ::ng-deep .runtime-table .p-datatable-thead > tr > th {
+  background: #0f2130;
+  color: #b9d5e7;
+  border-color: #2f4f69;
+  font-size: 0.78rem;
+}
+
+:host ::ng-deep .runtime-table .p-datatable-tbody > tr > td {
+  background: #102538;
+  color: #d6e7f6;
+  border-color: #2f4f69;
+  font-size: 0.78rem;
+  vertical-align: top;
+}
+
+:host ::ng-deep .runtime-table .p-datatable-tbody > tr:hover > td {
+  background: #142b3f;
+}
+
+:host ::ng-deep .runtime-table .p-paginator {
+  background: transparent;
+  border: 0;
+  padding-top: 10px;
+}
+
+:host ::ng-deep .runtime-table .p-paginator .p-paginator-page,
+:host ::ng-deep .runtime-table .p-paginator .p-paginator-next,
+:host ::ng-deep .runtime-table .p-paginator .p-paginator-prev,
+:host ::ng-deep .runtime-table .p-paginator .p-paginator-first,
+:host ::ng-deep .runtime-table .p-paginator .p-paginator-last,
+:host ::ng-deep .runtime-table .p-paginator .p-dropdown-label {
+  color: #d6e7f6;
+}
+
+:host ::ng-deep .runtime-table .p-paginator .p-select {
+  background: #0f1d2c;
+  border-color: #35536b;
+}
+
+:host ::ng-deep .runtime-detail-drawer .p-drawer {
+  background: #0f1827;
+  color: #d4deea;
+  border-left: 1px solid #22324a;
+}
+
+:host ::ng-deep .runtime-detail-drawer .p-drawer-header {
+  border-bottom: 1px solid #22324a;
+  color: #f0f6ff;
+  background: #0f1827;
+}
+
+:host ::ng-deep .runtime-detail-drawer .p-drawer-content {
+  padding-top: 10px;
+  background: #0f1827;
+}
+
+.detail-grid {
   display: flex;
-  justify-content: center;
-  box-sizing: border-box;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
 }
 
-app-log-viewing {
-  width: min(100%, 380px);
-  display: block;
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-@media (max-width: 782px) {
-  .dashboard-wrapper {
-    padding: 8px;
-  }
+.drawer-head h4 {
+  margin: 0;
+}
+
+.drawer-meta {
+  color: #9fb2c8;
+  margin: 8px 0 12px;
+  font-size: 12px;
+}
+
+.line {
+  border: 1px solid #22324a;
+  border-radius: 10px;
+  padding: 10px;
+  background: #132338;
+}
+
+.line-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #9fb2c8;
+  font-size: 12px;
+}
+
+.line p {
+  margin: 6px 0 0;
+  line-height: 1.4;
+  color: #d6e7f6;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+  line-height: 1.45;
 }

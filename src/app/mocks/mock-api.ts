@@ -8,6 +8,17 @@ interface MockErrorLog {
   ai_explanation?: string;
 }
 
+interface MockNetworkLog {
+  _id: string;
+  direction: 'inbound' | 'outbound';
+  url: string;
+  method: string;
+  status_code: string;
+  ip_address: string;
+  memory_usage: string;
+  time: string;
+}
+
 function buildIsoDate(daysAgo: number, hour: number): string {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
@@ -43,6 +54,49 @@ const mockErrorLogs: MockErrorLog[] = [
     message: 'Cannot modify header information - headers already sent',
     file: '/wp-includes/pluggable.php:1427',
     time: buildIsoDate(2, 16),
+  },
+];
+
+const mockNetworkLogs: MockNetworkLog[] = [
+  {
+    _id: 'net_2001',
+    direction: 'inbound',
+    url: '/wp-json/wc/store/cart',
+    method: 'GET',
+    status_code: '200',
+    ip_address: '172.31.8.44',
+    memory_usage: '18 MB',
+    time: buildIsoDate(0, 10),
+  },
+  {
+    _id: 'net_2002',
+    direction: 'outbound',
+    url: 'https://api.stripe.com/v1/payment_intents',
+    method: 'POST',
+    status_code: '201',
+    ip_address: '3.18.12.63',
+    memory_usage: '22 MB',
+    time: buildIsoDate(0, 13),
+  },
+  {
+    _id: 'net_2003',
+    direction: 'inbound',
+    url: '/wp-login.php',
+    method: 'POST',
+    status_code: '403',
+    ip_address: '84.19.117.91',
+    memory_usage: '17 MB',
+    time: buildIsoDate(1, 2),
+  },
+  {
+    _id: 'net_2004',
+    direction: 'outbound',
+    url: 'https://woo-rag-api.myobserver.io/v1/pro/verify-key',
+    method: 'POST',
+    status_code: '200',
+    ip_address: '44.219.182.11',
+    memory_usage: '20 MB',
+    time: buildIsoDate(1, 9),
   },
 ];
 
@@ -190,6 +244,25 @@ export function getMockResponse(method: HttpMethod, endpoint: string, body?: unk
         success: true,
         data: {
           errors: [...mockErrorLogs]
+        }
+      };
+    }
+
+    if (logType === 'network') {
+      return {
+        success: true,
+        data: {
+          network: [...mockNetworkLogs],
+        }
+      };
+    }
+
+    if (logType === 'all') {
+      return {
+        success: true,
+        data: {
+          errors: [...mockErrorLogs],
+          network: [...mockNetworkLogs],
         }
       };
     }

@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+
+type LogType = 'errors' | 'network' | 'all';
 
 interface WordPressErrorRow {
   id?: number | string;
@@ -14,11 +17,50 @@ interface WordPressErrorRow {
   ai_explanation?: string;
 }
 
+interface WordPressNetworkRow {
+  id?: number | string;
+  _id?: string;
+  direction?: string;
+  url?: string;
+  method?: string;
+  status_code?: number | string;
+  ip_address?: string;
+  memory_usage?: string;
+  time?: string;
+}
+
 interface WordPressLogsResponse {
   success?: boolean;
   data?: {
     errors?: WordPressErrorRow[];
+    network?: WordPressNetworkRow[];
   };
+}
+
+export interface RuntimeErrorLog {
+  _id: string;
+  message: string;
+  file: string;
+  time: string;
+  line: number;
+  level: string;
+  ai_explanation?: string;
+}
+
+export interface RuntimeNetworkLog {
+  _id: string;
+  direction: string;
+  url: string;
+  method: string;
+  status_code: string;
+  ip_address: string;
+  memory_usage: string;
+  time: string;
+}
+
+export interface RuntimeLogPayload {
+  errors: RuntimeErrorLog[];
+  network: RuntimeNetworkLog[];
 }
 
 @Injectable({
@@ -30,46 +72,39 @@ export class ReportAnalysisService {
 
   constructor(private apiService: ApiService) {}
 
-  private getWordPressBaseUrl() {
-    const ajaxUrl = this.wpConfig?.apiUrl;
-    if (typeof ajaxUrl === 'string' && ajaxUrl.startsWith('http')) {
-      try {
-        const parsed = new URL(ajaxUrl);
-        const sitePath = parsed.pathname.replace(/\/wp-admin\/admin-ajax\.php\/?$/i, '');
-        return `${parsed.origin}${sitePath}`.replace(/\/+$/, '');
-      } catch {
-        // Fall back below if the URL cannot be parsed.
-      }
-    }
-
-    return window.location.origin.replace(/\/+$/, '');
-  }
-
-  private buildWordPressUrl(path: string) {
-    const base = this.getWordPressBaseUrl();
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `${base}${cleanPath}`;
-  }
-
   // 1. Fetching Logs
-  getReportAnalysisFromApi() {
-    const action = 'myobrm_get_logs';
+  getRuntimeLogs(logType: LogType = 'all', limit: number = 500) {
+    const action = this.wpConfig?.actions?.getLogs ?? 'myobrm_get_logs';
     const nonce = this.wpConfig?.nonce;
-    const ajaxUrl = this.wpConfig?.apiUrl || this.buildWordPressUrl('/wp-admin/admin-ajax.php');
+    const ajaxUrl = this.wpConfig?.ajaxUrl || this.wpConfig?.apiUrl || 'wp-admin/admin-ajax.php';
+
+    // In real mode, WP config must provide a callable AJAX URL.
+    if (!environment.useMockApi && !this.wpConfig?.ajaxUrl && !this.wpConfig?.apiUrl) {
+      return of<RuntimeLogPayload>({ errors: [], network: [] });
+    }
 
     const formData = new FormData();
     formData.append('action', action);
     if (nonce) {
       formData.append('nonce', nonce);
     }
-    formData.append('log_type', 'errors');
-    formData.append('limit', '500');
+    formData.append('log_type', logType);
+    formData.append('limit', String(limit));
 
     return this.apiService.post<WordPressLogsResponse>(ajaxUrl, formData).pipe(
       map((response) => ({
-        errors: this.normalizeErrors(response?.data?.errors ?? [])
+        errors: this.normalizeErrors(response?.data?.errors ?? []),
+        network: this.normalizeNetwork(response?.data?.network ?? []),
       })),
-      catchError(() => of({ errors: [] }))
+      catchError(() => of<RuntimeLogPayload>({ errors: [], network: [] }))
+    );
+  }
+
+  getReportAnalysisFromApi() {
+    return this.getRuntimeLogs('errors').pipe(
+      map((payload) => ({
+        errors: payload.errors,
+      }))
     );
   }
 
@@ -140,6 +175,19 @@ export class ReportAnalysisService {
       line: Number(item.line ?? 0),
       level: String(item.level ?? ''),
       ai_explanation: item.ai_explanation ? String(item.ai_explanation) : undefined,
+    }));
+  }
+
+  private normalizeNetwork(networkLogs: WordPressNetworkRow[]): RuntimeNetworkLog[] {
+    return networkLogs.map((item) => ({
+      _id: String(item._id ?? item.id ?? ''),
+      direction: String(item.direction ?? 'inbound'),
+      url: String(item.url ?? ''),
+      method: String(item.method ?? 'GET').toUpperCase(),
+      status_code: String(item.status_code ?? ''),
+      ip_address: String(item.ip_address ?? ''),
+      memory_usage: String(item.memory_usage ?? ''),
+      time: String(item.time ?? new Date().toISOString()),
     }));
   }
 }
