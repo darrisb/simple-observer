@@ -1,0 +1,38 @@
+<main class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <p class="kicker">My Observer</p>
+      <h1>Runtime Error Monitor</h1>
+      <p class="sub">Runtime error telemetry workspace</p>
+    </div>
+
+    <nav class="menu" aria-label="Runtime sections">
+      @for (item of navItems; track item.path) {
+        <a
+          class="nav-item"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page">
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <section class="content">
+    <header class="topbar">
+      <div>
+        <p class="kicker">Management Console</p>
+        <h2>My Observer Runtime Error Monitor</h2>
+      </div>
+      <div class="chips">
+        <span class="chip chip-live">Data: {{ dataSourceLabel }}</span>
+        <span class="chip">Mode: {{ modeLabel }}</span>
+        <span class="chip">Backend: {{ backendLabel }}</span>
+      </div>
+    </header>
+
+    <router-outlet></router-outlet>
+  </section>
+</main>

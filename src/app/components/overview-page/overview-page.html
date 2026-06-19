@@ -1,0 +1,70 @@
+<section class="content-card">
+  <h2>Overview</h2>
+  <p class="section-copy">
+    Runtime summary powered by WordPress error logs on this site.
+  </p>
+
+  @if (isLoading) {
+    <p class="section-copy">Loading overview...</p>
+  } @else {
+    @if (loadError) {
+      <p class="error">{{ loadError }}</p>
+    }
+
+    <div class="stat-grid">
+      @for (item of summary; track item.label) {
+        <article class="stat-card">
+          <h3>{{ item.label }}</h3>
+          @if (item.label === 'Last Error Time' && item.value !== 'No errors found') {
+            <p>{{ item.value | date:'medium' }}</p>
+          } @else {
+            <p>{{ item.value }}</p>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<section class="content-grid">
+  <article class="content-card">
+    <h3>Top Recurring Errors</h3>
+    <p class="section-copy">Most repeated issue groups in the current sample.</p>
+
+    @if (!isLoading && groupedErrors.length === 0) {
+      <p class="section-copy">No recurring groups detected.</p>
+    } @else {
+      <div class="list-stack">
+        @for (item of groupedErrors; track item.key) {
+          <article class="list-item">
+            <div class="list-head">
+              <p class="title">{{ item.message }}</p>
+              <span class="count">x{{ item.count }}</span>
+            </div>
+            <p class="meta">{{ item.file }}</p>
+            <p class="meta">Latest: {{ item.latestTime | date:'short' }}</p>
+          </article>
+        }
+      </div>
+    }
+  </article>
+
+  <article class="content-card">
+    <h3>Latest Error Events</h3>
+    <p class="section-copy">Most recent runtime entries captured by the plugin.</p>
+
+    @if (!isLoading && recentErrors.length === 0) {
+      <p class="section-copy">No recent error events found.</p>
+    } @else {
+      <div class="list-stack">
+        @for (item of recentErrors; track item._id + item.time) {
+          <article class="list-item">
+            <p class="title">{{ item.message }}</p>
+            <p class="meta">{{ item.time | date:'short' }}</p>
+            <p class="meta">{{ item.file }}:{{ item.line }}</p>
+          </article>
+        }
+      </div>
+    }
+  </article>
+</section>

@@ -1,0 +1,14 @@
+<section class="content-card">
+  <h2>Calendar Workbench</h2>
+  <p class="section-copy">
+    Development view for the dashboard calendar widget.
+  </p>
+
+  @if (isLoading) {
+    <p class="section-copy">Loading calendar data...</p>
+  } @else {
+    <div class="calendar-wrap">
+      <app-log-viewing [errors]="errors"></app-log-viewing>
+    </div>
+  }
+</section>

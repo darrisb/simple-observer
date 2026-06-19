@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+
+.calendar-wrap {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+app-log-viewing {
+  width: min(100%, 420px);
+  display: block;
+}
