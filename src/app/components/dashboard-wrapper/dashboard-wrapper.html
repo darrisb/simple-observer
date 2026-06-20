@@ -112,13 +112,6 @@
         </div>
         <p>{{ row.file || '-' }}</p>
       </div>
-      <div class="line">
-        <div class="line-meta">
-          <strong>AI Explanation</strong>
-          <span>{{ row.ai_explanation ? 'Available' : 'None' }}</span>
-        </div>
-        <p>{{ row.ai_explanation || 'No AI explanation recorded for this log row.' }}</p>
-      </div>
     </div>
   } @else {
     <p class="section-copy">Select a row to view details.</p>

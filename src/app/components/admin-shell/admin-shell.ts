@@ -32,11 +32,6 @@ export class AdminShell {
       path: '/runtime-errors',
       description: 'Calendar and grouped error triage view.',
     },
-    {
-      label: 'My Observer Products',
-      path: '/upgrade',
-      description: 'Pro features and availability details.',
-    },
   ];
 
   constructor() {

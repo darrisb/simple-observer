@@ -159,6 +159,15 @@
   box-shadow: 0 0 0 2px rgba(228, 247, 255, 0.25);
 }
 
+/* Keep PrimeNG selection/focus chrome from masking day health colors. */
+::ng-deep .widget-datepicker-panel td > span.p-highlight,
+::ng-deep .widget-datepicker-panel td > span:focus {
+  background: transparent !important;
+  color: inherit !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
 .dialog-body {
   display: grid;
   gap: 10px;

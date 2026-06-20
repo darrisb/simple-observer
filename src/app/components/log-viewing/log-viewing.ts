@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
-import { ApiService } from '../../services/api.service';
 
 interface DashboardError {
   _id?: string;
@@ -22,19 +21,6 @@ interface GroupedDayError {
   hasFix: boolean;
 }
 
-interface CalendarBannerResponse {
-  available?: boolean;
-  enabled?: boolean;
-  imageSrc?: string;
-  src?: string;
-  data?: {
-    available?: boolean;
-    enabled?: boolean;
-    imageSrc?: string;
-    src?: string;
-  };
-}
-
 @Component({
   selector: 'app-log-viewing',
   standalone: true,
@@ -42,8 +28,7 @@ interface CalendarBannerResponse {
   templateUrl: './log-viewing.html',
   styleUrl: './log-viewing.scss',
 })
-export class LogViewing implements OnInit {
-  private readonly apiService = inject(ApiService);
+export class LogViewing {
   private readonly dateFormatter = new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
     month: 'short',
@@ -69,10 +54,6 @@ export class LogViewing implements OnInit {
   selectedDayErrors: GroupedDayError[] = [];
   selectedDayRawCount = 0;
   showUpgradeBadge = false;
-
-  ngOnInit(): void {
-    this.checkProAvailability();
-  }
 
   handleDateSelection(date: Date): void {
     this.selectedDate = date;
@@ -166,19 +147,5 @@ export class LogViewing implements OnInit {
     const dayValue = String(normalizedDate.getDate()).padStart(2, '0');
 
     return `${normalizedDate.getFullYear()}-${month}-${dayValue}`;
-  }
-
-  private checkProAvailability(): void {
-    this.apiService.get<any>('api/pro/availability').subscribe({
-      next: (response) => {
-        this.showUpgradeBadge = Boolean(
-          response?.available ?? response?.proAvailable ?? response?.data?.available
-        );
-      },
-      error: () => {
-        // Hide upgrade prompts until backend explicitly marks pro as available.
-        this.showUpgradeBadge = false;
-      }
-    });
   }
 }

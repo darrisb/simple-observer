@@ -2,6 +2,22 @@
   display: block;
 }
 
+.toolbar input[type="date"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+  min-width: 150px;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  color-scheme: light;
+}
+
+.toolbar input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  display: block;
+  cursor: pointer;
+  filter: none;
+}
+
 .actions-col {
   white-space: nowrap;
 }
