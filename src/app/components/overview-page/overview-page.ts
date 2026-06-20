@@ -64,13 +64,11 @@ export class OverviewPage implements OnInit {
 
   private buildSummary(errors: RuntimeErrorLog[]): StatItem[] {
     const uniqueGroups = new Set(errors.map((item) => `${item.message}|${item.file}`)).size;
-    const aiReady = errors.filter((item) => !!item.ai_explanation).length;
     const lastError = errors[0]?.time ?? '';
 
     return [
       { label: 'Total Error Events', value: String(errors.length) },
       { label: 'Unique Error Groups', value: String(uniqueGroups) },
-      { label: 'AI-Explained Errors', value: String(aiReady) },
       { label: 'Last Error Time', value: lastError || 'No errors found' },
     ];
   }
