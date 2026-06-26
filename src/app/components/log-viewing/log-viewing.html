@@ -2,11 +2,18 @@
   <div class="widget-header">
     <div>
       <p class="widget-kicker">Simple Observer Widget</p>
-      <h2>Daily Health Calendar</h2>
+      <h2>Daily Error Heatmap</h2>
     </div>
     <div class="legend">
-      <span><i class="dot ok"></i>No errors</span>
-      <span><i class="dot error"></i>Has errors</span>
+      <span>Less</span>
+      <span class="heat-legend">
+        <i class="swatch level-none"></i>
+        <i class="swatch level-low"></i>
+        <i class="swatch level-medium"></i>
+        <i class="swatch level-high"></i>
+        <i class="swatch level-critical"></i>
+      </span>
+      <span>More</span>
       @if (showUpgradeBadge) {
         <a class="upgrade-badge" [routerLink]="['/upgrade']" [skipLocationChange]="true">
           Upgrade to Pro
@@ -15,24 +22,45 @@
     </div>
   </div>
 
-  <p-datePicker
-    [(ngModel)]="selectedDate"
-    [inline]="true"
-    [appendTo]="'body'"
-    [baseZIndex]="13000"
-    styleClass="widget-datepicker"
-    panelStyleClass="widget-datepicker-panel"
-    (onSelect)="handleDateSelection($event)">
-    <ng-template #date let-date>
-      <span
-        class="day-chip"
-        [class.has-errors]="hasErrorsOnTemplateDate(date)"
-        [class.no-errors]="!hasErrorsOnTemplateDate(date)"
-        [class.other-month]="date.otherMonth">
-        {{ date.day }}
-      </span>
-    </ng-template>
-  </p-datePicker>
+  <div class="heatmap-shell" [style.--week-count]="heatmapWeeks.length">
+    <div class="weekday-axis">
+      @for (weekday of weekdayLabels; track weekday) {
+        <span>{{ weekday }}</span>
+      }
+    </div>
+
+    <div class="heatmap-content">
+      <div class="month-axis">
+        @for (week of heatmapWeeks; track week.key) {
+          <span>{{ week.monthLabel }}</span>
+        }
+      </div>
+
+      <div class="heatmap-grid">
+        @for (week of heatmapWeeks; track week.key) {
+          <div class="week-column">
+            @for (cell of week.cells; track cell.key) {
+              <button
+                type="button"
+                class="heat-cell"
+                [class.level-none]="cell.level === 'none'"
+                [class.level-low]="cell.level === 'low'"
+                [class.level-medium]="cell.level === 'medium'"
+                [class.level-high]="cell.level === 'high'"
+                [class.level-critical]="cell.level === 'critical'"
+                [class.level-future]="cell.level === 'future'"
+                [class.today]="cell.isToday"
+                [attr.aria-label]="cell.tooltip"
+                [attr.title]="cell.tooltip"
+                [disabled]="cell.isFuture"
+                (click)="handleDateSelection(cell)">
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 </div>
 
 <p-dialog
@@ -42,17 +70,24 @@
   [dismissableMask]="true"
   [draggable]="false"
   [resizable]="false"
+  [style]="{ width: '560px', maxWidth: '90vw' }"
   [appendTo]="'body'"
   [baseZIndex]="15000"
   styleClass="wp-log-dialog">
   <div class="dialog-body">
-    <p class="dialog-date">{{ selectedDateLabel }}</p>
+    <div class="dialog-head">
+      <p class="dialog-date">{{ selectedDateLabel }}</p>
+      @if (selectedDayRawCount > 0) {
+        <div class="dialog-stats">
+          <span class="stat-chip">{{ selectedDayRawCount }} events</span>
+          <span class="stat-chip">{{ selectedDayErrors.length }} groups</span>
+        </div>
+      }
+    </div>
 
     @if (selectedDayRawCount === 0) {
       <div class="empty-state">No errors for this date. System stayed stable.</div>
     } @else {
-      <p class="summary">{{ selectedDayRawCount }} log events, {{ selectedDayErrors.length }} unique issue groups.</p>
-
       <div class="issue-list">
         @for (issue of selectedDayErrors; track issue.message + issue.file) {
           <article class="issue-card">

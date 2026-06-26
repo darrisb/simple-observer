@@ -1,119 +1,122 @@
 <section class="content-card">
   <h2>Runtime Errors</h2>
   <p class="section-copy">
-    Inspect runtime errors with filtering, pagination, and detail drill-down.
+    Inspect recurring runtime errors with grouped issue cards and timeline history.
   </p>
 
   <div class="toolbar">
-    <select [(ngModel)]="level">
-      <option value="">All Levels</option>
-      <option value="error">Error</option>
-      <option value="warning">Warning</option>
-      <option value="notice">Notice</option>
-      <option value="exception">Exception</option>
-    </select>
-    <input type="date" [(ngModel)]="dateFrom" />
-    <input type="date" [(ngModel)]="dateTo" />
-    <input type="text" [(ngModel)]="search" placeholder="Search message or file" />
-    <button type="button" (click)="applyFilters()">Apply</button>
-    <button type="button" (click)="clearFilters()">Reset</button>
+    <p-select
+      [(ngModel)]="level"
+      [options]="levelOptions"
+      optionLabel="label"
+      optionValue="value"
+      [showClear]="true"
+      placeholder="All Levels"
+      [appendTo]="'body'"
+      panelStyleClass="runtime-toolbar-select-panel"
+      styleClass="toolbar-field">
+    </p-select>
+
+    <p-datePicker
+      [(ngModel)]="dateFrom"
+      [showIcon]="true"
+      [showClear]="true"
+      dateFormat="yy-mm-dd"
+      placeholder="From date"
+      [appendTo]="'body'"
+      panelStyleClass="runtime-toolbar-date-panel"
+      styleClass="toolbar-field">
+    </p-datePicker>
+
+    <p-datePicker
+      [(ngModel)]="dateTo"
+      [showIcon]="true"
+      [showClear]="true"
+      dateFormat="yy-mm-dd"
+      placeholder="To date"
+      [appendTo]="'body'"
+      panelStyleClass="runtime-toolbar-date-panel"
+      styleClass="toolbar-field">
+    </p-datePicker>
+
+    <input
+      pInputText
+      [(ngModel)]="search"
+      placeholder="Search message or file"
+      class="toolbar-field search-field" />
+
+    <div class="toolbar-actions">
+      <p-button
+        label="Apply"
+        (onClick)="applyFilters()">
+      </p-button>
+      <p-button
+        label="Reset"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="clearFilters()">
+      </p-button>
+    </div>
   </div>
 
   @if (isLoading) {
     <p class="section-copy">Loading runtime errors...</p>
   } @else {
-    <p class="section-copy">Matching rows: {{ total }}</p>
+    <p class="section-copy">Matching events: {{ totalEvents }} across {{ totalGroups }} grouped issues.</p>
   }
 </section>
 
 <section class="content-card" *ngIf="!isLoading">
-  @if (!filteredErrors.length) {
+  @if (!groupedErrors.length) {
     <div class="placeholder">
       <p>No runtime errors matched the selected filters.</p>
     </div>
   } @else {
-    <p-table
-      [value]="filteredErrors"
+    <p-dataview
+      [value]="groupedErrors"
+      [layout]="'grid'"
       [paginator]="true"
-      [rows]="20"
-      [rowsPerPageOptions]="[10, 20, 50, 100]"
-      [tableStyle]="{ 'min-width': '70rem' }"
-      styleClass="runtime-table">
+      [rows]="9"
+      [rowsPerPageOptions]="[6, 9, 12, 18]"
+      styleClass="runtime-groups-view">
+      <ng-template #grid let-items>
+        <div class="group-grid">
+          @for (group of items; track group.key) {
+            <article class="group-card">
+              <div class="group-head">
+                <h3>{{ group.message }}</h3>
+                <span class="count-badge">x{{ group.count }}</span>
+              </div>
 
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Time</th>
-          <th>Level</th>
-          <th>Message</th>
-          <th>Location</th>
-          <th>Action</th>
-        </tr>
-      </ng-template>
+              <p class="group-file">{{ group.file || 'Unknown file path' }}</p>
 
-      <ng-template pTemplate="body" let-row>
-        <tr>
-          <td>{{ row.time | date:'short' }}</td>
-          <td><span class="badge level">{{ row.level || '-' }}</span></td>
-          <td>{{ row.message }}</td>
-          <td>{{ row.file }}:{{ row.line }}</td>
-          <td class="actions-col">
-            <button type="button" class="action-btn" (click)="openDetails(row)">
-              View Error Detail
-            </button>
-          </td>
-        </tr>
+              <div class="group-meta">
+                <span>Latest: {{ group.latestTime | date:'short' }}</span>
+                <span>First seen: {{ group.earliestTime | date:'shortDate' }}</span>
+              </div>
+
+              <div class="group-levels">
+                @if (group.levels.length) {
+                  @for (errorLevel of group.levels; track errorLevel) {
+                    <span class="badge level">{{ errorLevel }}</span>
+                  }
+                } @else {
+                  <span class="badge level">Unknown</span>
+                }
+              </div>
+
+              <div class="occurrences-box" [class.scrollable]="group.count > 4">
+                @for (occurrence of group.occurrences; track occurrence._id + '-' + occurrence.time + '-' + $index) {
+                  <div class="occurrence-row">
+                    <span>{{ occurrence.time | date:'medium' }}</span>
+                    <span>Line {{ occurrence.line || '-' }}</span>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </div>
       </ng-template>
-    </p-table>
+    </p-dataview>
   }
 </section>
-
-<p-drawer
-  [(visible)]="detailVisible"
-  position="right"
-  [modal]="true"
-  [dismissible]="true"
-  [style]="{ width: '34rem', maxWidth: '92vw' }"
-  styleClass="runtime-detail-drawer"
-  header="Error Detail">
-  @if (selected; as row) {
-    <div class="drawer-head">
-      <h4>Runtime Error Detail</h4>
-      <button type="button" class="close-btn" (click)="detailVisible = false">Close</button>
-    </div>
-
-    <p class="drawer-meta">Error ID: {{ row._id || '-' }}</p>
-
-    <div class="detail-grid">
-      <div class="line">
-        <div class="line-meta">
-          <strong>Time</strong>
-          <span>{{ row.time | date:'short' }}</span>
-        </div>
-        <p>{{ row.time | date:'full' }}</p>
-      </div>
-      <div class="line">
-        <div class="line-meta">
-          <strong>Level</strong>
-          <span>{{ row.level || '-' }}</span>
-        </div>
-        <p>{{ row.level || 'Unknown' }}</p>
-      </div>
-      <div class="line">
-        <div class="line-meta">
-          <strong>Message</strong>
-          <span>Error text</span>
-        </div>
-        <p>{{ row.message }}</p>
-      </div>
-      <div class="line">
-        <div class="line-meta">
-          <strong>Location</strong>
-          <span>Line {{ row.line || '-' }}</span>
-        </div>
-        <p>{{ row.file || '-' }}</p>
-      </div>
-    </div>
-  } @else {
-    <p class="section-copy">Select a row to view details.</p>
-  }
-</p-drawer>

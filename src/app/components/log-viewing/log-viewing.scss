@@ -7,8 +7,12 @@
   --surface-soft: #173447;
   --ink: #e9f4ff;
   --muted: #b8d5e6;
-  --ok: #2ea44f;
-  --error: #d1242f;
+  --heat-none: rgba(126, 170, 196, 0.18);
+  --heat-low: #1f7a48;
+  --heat-medium: #2b9d58;
+  --heat-high: #d17d29;
+  --heat-critical: #ce3f42;
+  --heat-future: rgba(99, 134, 156, 0.1);
 
   background: linear-gradient(170deg, var(--surface) 0%, var(--surface-soft) 100%);
   border-radius: 16px;
@@ -42,26 +46,44 @@
   color: white;
 }
 
-.calendar-banner {
-  display: block;
-  width: 150px;
-  height: 40px;
-  margin-top: 5px;
-  object-fit: contain;
-}
-
 .legend {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   font-size: 0.72rem;
   color: var(--muted);
+  flex-wrap: wrap;
 }
 
-.legend span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.heat-legend {
+  display: inline-flex;
+}
+
+.swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1px solid rgba(180, 220, 245, 0.16);
+}
+
+.swatch.level-none {
+  background: var(--heat-none);
+}
+
+.swatch.level-low {
+  background: var(--heat-low);
+}
+
+.swatch.level-medium {
+  background: var(--heat-medium);
+}
+
+.swatch.level-high {
+  background: var(--heat-high);
+}
+
+.swatch.level-critical {
+  background: var(--heat-critical);
 }
 
 .upgrade-badge {
@@ -87,169 +109,93 @@
   box-shadow: 0 8px 16px rgba(13, 6, 1, 0.35);
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
+.heatmap-shell {
+  --week-count: 12;
+  --cell-gap: 4px;
+  --cell-size: 14px;
 
-.dot.ok {
-  background: var(--ok);
-}
-
-.dot.error {
-  background: var(--error);
-}
-
-::ng-deep .widget-datepicker.p-datepicker {
-  width: 100%;
-  background: rgba(7, 22, 34, 0.55) !important;
-  border: 1px solid rgba(113, 177, 208, 0.25) !important;
-  border-radius: 12px !important;
-  padding: 10px !important;
-}
-
-::ng-deep .widget-datepicker-panel .p-datepicker-header {
-  border-bottom: 1px solid rgba(153, 206, 233, 0.25) !important;
-  padding-bottom: 10px !important;
-  margin-bottom: 8px !important;
-}
-
-::ng-deep .widget-datepicker-panel .p-datepicker-title,
-::ng-deep .widget-datepicker-panel .p-datepicker-prev,
-::ng-deep .widget-datepicker-panel .p-datepicker-next,
-::ng-deep .widget-datepicker-panel th {
-  color: #d9f0ff !important;
-}
-
-::ng-deep .widget-datepicker-panel td {
-  padding: 2px !important;
-}
-
-.day-chip {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.78rem;
-  font-weight: 600;
-  position: relative;
-}
-
-.day-chip.no-errors {
-  color: #d7f8e1;
-  background: rgba(46, 164, 79, 0.2);
-  border: 1px solid rgba(86, 204, 119, 0.45);
-}
-
-.day-chip.has-errors {
-  color: #ffe0e2;
-  background: rgba(209, 36, 47, 0.26);
-  border: 1px solid rgba(245, 84, 95, 0.58);
-}
-
-.day-chip.other-month {
-  opacity: 0.45;
-}
-
-::ng-deep .widget-datepicker-panel td > span.p-highlight .day-chip {
-  transform: scale(1.06);
-  box-shadow: 0 0 0 2px rgba(228, 247, 255, 0.25);
-}
-
-/* Keep PrimeNG selection/focus chrome from masking day health colors. */
-::ng-deep .widget-datepicker-panel td > span.p-highlight,
-::ng-deep .widget-datepicker-panel td > span:focus {
-  background: transparent !important;
-  color: inherit !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-
-.dialog-body {
+  margin-top: 10px;
   display: grid;
-  gap: 10px;
-}
-
-.dialog-date {
-  margin: 0;
-  font-weight: 600;
-  color: #1d3649;
-}
-
-.summary {
-  margin: 0;
-  color: #3b556b;
-  font-size: 0.9rem;
-}
-
-.empty-state {
-  border-radius: 10px;
-  padding: 12px;
-  background: #ecf9f0;
-  border: 1px solid #b0dfc0;
-  color: #1f5332;
-  font-size: 0.9rem;
-}
-
-.issue-list {
-  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 8px;
-  max-height: 320px;
-  overflow: auto;
+  align-items: start;
 }
 
-.issue-card {
-  background: #f4f7fb;
-  border: 1px solid #d7e3ef;
-  border-radius: 10px;
-  padding: 10px;
+.weekday-axis {
+  display: grid;
+  grid-template-rows: repeat(7, var(--cell-size));
+  gap: var(--cell-gap);
+  padding-top: 20px;
+  color: #9fc1d8;
+  font-size: 0.64rem;
+  line-height: 1;
 }
 
-.issue-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+.heatmap-content {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
-.issue-row h3 {
-  margin: 0;
-  font-size: 0.86rem;
-  color: #13283a;
-  line-height: 1.3;
+.month-axis {
+  display: grid;
+  grid-template-columns: repeat(var(--week-count), minmax(var(--cell-size), 1fr));
+  gap: var(--cell-gap);
+  margin-bottom: 4px;
+  color: #9fc1d8;
+  font-size: 0.62rem;
+  width: 100%;
 }
 
-.issue-row .count {
-  font-size: 0.73rem;
-  color: #6e2a30;
-  background: #ffdbe0;
-  border-radius: 999px;
-  padding: 2px 7px;
-  font-weight: 650;
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--week-count), minmax(var(--cell-size), 1fr));
+  gap: var(--cell-gap);
+  width: 100%;
 }
 
-.path {
-  margin: 6px 0;
-  font-size: 0.78rem;
-  color: #587086;
-  overflow-wrap: anywhere;
+.week-column {
+  display: grid;
+  grid-template-rows: repeat(7, var(--cell-size));
+  gap: var(--cell-gap);
+  justify-items: center;
 }
 
-.issue-row.meta {
-  font-size: 0.74rem;
-  color: #607a91;
+.heat-cell {
+  width: 100%;
+  max-width: 16px;
+  height: var(--cell-size);
+  border-radius: 3px;
+  border: 1px solid rgba(180, 220, 245, 0.14);
+  background: var(--heat-none);
+  padding: 0;
+  cursor: pointer;
+  justify-self: center;
 }
 
-.issue-row.meta .ready {
-  color: #1c7f3d;
-  font-weight: 600;
+.heat-cell.level-low {
+  background: var(--heat-low);
 }
 
-:host ::ng-deep .wp-log-dialog {
-  width: min(90vw, 560px);
+.heat-cell.level-medium {
+  background: var(--heat-medium);
+}
+
+.heat-cell.level-high {
+  background: var(--heat-high);
+}
+
+.heat-cell.level-critical {
+  background: var(--heat-critical);
+}
+
+.heat-cell.level-future {
+  background: var(--heat-future);
+  border-color: rgba(180, 220, 245, 0.08);
+}
+
+.heat-cell:disabled {
+  cursor: default;
 }
 
 @media (max-width: 782px) {

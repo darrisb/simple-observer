@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 
 interface DashboardError {
@@ -21,10 +19,28 @@ interface GroupedDayError {
   hasFix: boolean;
 }
 
+type HeatLevel = 'none' | 'low' | 'medium' | 'high' | 'critical' | 'future';
+
+interface HeatmapCell {
+  key: string;
+  date: Date;
+  count: number;
+  level: HeatLevel;
+  isToday: boolean;
+  isFuture: boolean;
+  tooltip: string;
+}
+
+interface HeatmapWeek {
+  key: string;
+  monthLabel: string;
+  cells: HeatmapCell[];
+}
+
 @Component({
   selector: 'app-log-viewing',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DatePickerModule, DialogModule],
+  imports: [CommonModule, RouterLink, DialogModule],
   templateUrl: './log-viewing.html',
   styleUrl: './log-viewing.scss',
 })
@@ -35,6 +51,8 @@ export class LogViewing {
     day: 'numeric',
     year: 'numeric'
   });
+  private readonly monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
+  private readonly heatmapWeeksToShow = 12;
 
   private errorsByDate = new Map<string, DashboardError[]>();
 
@@ -46,6 +64,8 @@ export class LogViewing {
     if (this.selectedDate) {
       this.loadDateDetails(this.selectedDate);
     }
+
+    this.rebuildHeatmap();
   }
 
   selectedDate: Date = new Date();
@@ -54,24 +74,21 @@ export class LogViewing {
   selectedDayErrors: GroupedDayError[] = [];
   selectedDayRawCount = 0;
   showUpgradeBadge = false;
+  readonly weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  heatmapWeeks: HeatmapWeek[] = [];
 
-  handleDateSelection(date: Date): void {
-    this.selectedDate = date;
-    this.loadDateDetails(date);
-    this.showDetailsDialog = true;
+  constructor() {
+    this.rebuildHeatmap();
   }
 
-  hasErrorsOnTemplateDate(date: any): boolean {
-    return this.getErrorCountForTemplateDate(date) > 0;
-  }
-
-  getErrorCountForTemplateDate(date: any): number {
-    const dateKey = this.getTemplateDateKey(date);
-    if (!dateKey) {
-      return 0;
+  handleDateSelection(cell: HeatmapCell): void {
+    if (cell.isFuture) {
+      return;
     }
 
-    return this.errorsByDate.get(dateKey)?.length ?? 0;
+    this.selectedDate = cell.date;
+    this.loadDateDetails(cell.date);
+    this.showDetailsDialog = true;
   }
 
   private loadDateDetails(date: Date): void {
@@ -101,6 +118,51 @@ export class LogViewing {
     });
   }
 
+  private rebuildHeatmap(): void {
+    const today = this.startOfDay(new Date());
+    const currentWeekStart = this.startOfDay(new Date(today));
+    currentWeekStart.setDate(today.getDate() - today.getDay());
+
+    const firstWeekStart = this.startOfDay(new Date(currentWeekStart));
+    firstWeekStart.setDate(currentWeekStart.getDate() - (this.heatmapWeeksToShow - 1) * 7);
+
+    const weeks: HeatmapWeek[] = [];
+
+    for (let weekIndex = 0; weekIndex < this.heatmapWeeksToShow; weekIndex += 1) {
+      const weekStart = this.startOfDay(new Date(firstWeekStart));
+      weekStart.setDate(firstWeekStart.getDate() + weekIndex * 7);
+
+      const weekCells: HeatmapCell[] = [];
+
+      for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+        const cellDate = this.startOfDay(new Date(weekStart));
+        cellDate.setDate(weekStart.getDate() + dayOffset);
+
+        const dateKey = this.toDateKey(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
+        const isFuture = cellDate.getTime() > today.getTime();
+        const count = isFuture ? 0 : (this.errorsByDate.get(dateKey)?.length ?? 0);
+
+        weekCells.push({
+          key: dateKey,
+          date: cellDate,
+          count,
+          level: isFuture ? 'future' : this.toHeatLevel(count),
+          isToday: cellDate.getTime() === today.getTime(),
+          isFuture,
+          tooltip: `${this.dateFormatter.format(cellDate)}: ${count} errors`,
+        });
+      }
+
+      weeks.push({
+        key: this.toDateKey(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()),
+        monthLabel: this.getMonthLabelForWeek(weekCells, weekIndex),
+        cells: weekCells,
+      });
+    }
+
+    this.heatmapWeeks = weeks;
+  }
+
   private groupErrors(errors: DashboardError[]): GroupedDayError[] {
     const groupMap = new Map<string, GroupedDayError>();
 
@@ -128,17 +190,38 @@ export class LogViewing {
     return Array.from(groupMap.values()).sort((a, b) => b.count - a.count);
   }
 
-  private getTemplateDateKey(templateDate: any): string | null {
-    const day = Number(templateDate?.day);
-    const month = Number(templateDate?.month);
-    const year = Number(templateDate?.year);
-
-    if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) {
-      return null;
+  private getMonthLabelForWeek(cells: HeatmapCell[], weekIndex: number): string {
+    const firstOfMonthCell = cells.find((cell) => !cell.isFuture && cell.date.getDate() === 1);
+    if (firstOfMonthCell) {
+      return this.monthFormatter.format(firstOfMonthCell.date);
     }
 
-    // PrimeNG date templates expose 0-based month indexes.
-    return this.toDateKey(year, month, day);
+    if (weekIndex === 0) {
+      return this.monthFormatter.format(cells[0].date);
+    }
+
+    return '';
+  }
+
+  private toHeatLevel(count: number): HeatLevel {
+    if (count === 0) {
+      return 'none';
+    }
+    if (count <= 2) {
+      return 'low';
+    }
+    if (count <= 5) {
+      return 'medium';
+    }
+    if (count <= 9) {
+      return 'high';
+    }
+
+    return 'critical';
+  }
+
+  private startOfDay(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
   }
 
   private toDateKey(year: number, monthIndex: number, day: number): string {

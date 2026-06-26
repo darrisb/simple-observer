@@ -1,25 +1,21 @@
-=== MyObserver Runtime Error Monitor ===
+=== My Observer Runtime Error Monitor ===
 Contributors: myobserver
-Tags: observability, logging, errors, monitoring, dashboard
+Tags: error, error monitor
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-WordPress runtime incident triage plugin with a dashboard calendar, grouped error patterns, and AJAX log retrieval for fast debugging.
+WordPress runtime incident triage plugin with a dashboard heatmap, grouped error patterns, and AJAX log retrieval for fast debugging.
 
 == Description ==
 
-MyObserver Runtime Error Monitor records WordPress and PHP runtime errors, groups recurring failures, and surfaces them in an inline dashboard calendar widget for day-by-day triage.
-
-Privacy and data use:
-- Free mode stores logs in WordPress database tables.
-- Free mode does not require an external logging bridge.
+MyObserver Runtime Error Monitor records WordPress and PHP runtime errors, groups recurring failures, and surfaces them in an inline dashboard heatmap widget for day-by-day triage.
 
 Distinct focus:
-- Calendar-based daily triage instead of a flat log stream.
+- Heatmap-based daily triage instead of a flat log stream.
 - Grouped recurring errors to reduce alert noise and speed investigation.
 - Built for WordPress admin workflows (dashboard-first visibility for site operators).
 
@@ -46,13 +42,26 @@ What data is sent and when:
 Service policies:
 - Privacy Policy: https://myobserver.io/privacy
 
+== Screenshots ==
+1. Dashboard Heatmap
+2. Error Search Table
+3. Advanced Dashboard to view chat history and configure and test the vector database.
+
+
 == Installation ==
 
 1. Upload plugin files to `/wp-content/plugins/myobserver-runtime-error-monitor/` or install from the plugin screen.
 2. Activate the plugin through the Plugins screen in WordPress.
-3. Open WordPress Dashboard to view the widget.
+3. Overview
 
 == Changelog ==
+
+= 3.0.2 =
+* Replaced calendar date widget with a dashboard heatmap view for daily runtime-error intensity scanning.
+* Reworked runtime error list into grouped issue cards using PrimeNG DataView grid layout.
+* Grouped repeated errors by pattern and surfaced occurrence counts with in-card scrollable timelines.
+* Upgraded runtime filter toolbar controls to PrimeNG components (select, datepicker, input, and buttons).
+* Refreshed error detail modal styling to align with dashboard theme and hardened modal width handling for WordPress admin CSS overrides.
 
 = 3.0.1 =
 * Initial release with runtime error capture and dashboard widget.

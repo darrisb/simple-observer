@@ -195,3 +195,157 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.wp-log-dialog.p-dialog,
+.p-dialog-mask.wp-log-dialog .p-dialog {
+  width: min(90vw, 560px) !important;
+  max-width: 90vw !important;
+  border: 1px solid #2a4f68 !important;
+  background: linear-gradient(180deg, #0d1f2e, #102a3d) !important;
+  color: #eaf5ff !important;
+}
+
+.wp-log-dialog.p-dialog .p-dialog-header,
+.p-dialog-mask.wp-log-dialog .p-dialog .p-dialog-header {
+  border-bottom: 1px solid #2a4f68 !important;
+  background: rgba(6, 20, 32, 0.66) !important;
+  color: #f4f9ff !important;
+  padding: 0.9rem 1rem;
+}
+
+.wp-log-dialog.p-dialog .p-dialog-title,
+.p-dialog-mask.wp-log-dialog .p-dialog .p-dialog-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.wp-log-dialog.p-dialog .p-dialog-content,
+.p-dialog-mask.wp-log-dialog .p-dialog .p-dialog-content {
+  background: transparent !important;
+  color: inherit !important;
+  padding: 0.95rem 1rem 1rem;
+}
+
+.wp-log-dialog.p-dialog .p-dialog-header .p-dialog-header-icon,
+.p-dialog-mask.wp-log-dialog .p-dialog .p-dialog-header .p-dialog-header-icon {
+  color: #b8d5e6;
+}
+
+.wp-log-dialog.p-dialog .p-dialog-header .p-dialog-header-icon:hover,
+.p-dialog-mask.wp-log-dialog .p-dialog .p-dialog-header .p-dialog-header-icon:hover {
+  background: #17344a;
+  color: #eaf5ff;
+}
+
+.wp-log-dialog .dialog-body {
+  display: grid;
+  gap: 12px;
+}
+
+.wp-log-dialog .dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wp-log-dialog .dialog-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.wp-log-dialog .stat-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid #3b6485;
+  background: #102a3e;
+  color: #d7ebfb;
+  font-size: 0.68rem;
+  line-height: 1;
+  padding: 4px 8px;
+  font-weight: 650;
+}
+
+.wp-log-dialog .dialog-date {
+  margin: 0;
+  font-weight: 650;
+  color: #ecf6ff;
+  font-size: 0.95rem;
+}
+
+.wp-log-dialog .empty-state {
+  border-radius: 10px;
+  padding: 12px;
+  background: #10283a;
+  border: 1px solid #315772;
+  color: #cde4f6;
+  font-size: 0.9rem;
+}
+
+.wp-log-dialog .issue-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.wp-log-dialog .issue-card {
+  background: linear-gradient(165deg, #122b3f, #0f2334);
+  border: 1px solid #2a4d67;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.wp-log-dialog .issue-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.wp-log-dialog .issue-row h3 {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #ecf6ff;
+  line-height: 1.3;
+}
+
+.wp-log-dialog .issue-row .count {
+  font-size: 0.73rem;
+  color: #ffeef0;
+  background: #8a2d35;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-weight: 650;
+}
+
+.wp-log-dialog .path {
+  margin: 6px 0;
+  font-size: 0.78rem;
+  color: #9dbed6;
+  overflow-wrap: anywhere;
+}
+
+.wp-log-dialog .issue-row.meta {
+  font-size: 0.74rem;
+  color: #8fb2cc;
+}
+
+.wp-log-dialog .issue-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.wp-log-dialog .issue-list::-webkit-scrollbar-track {
+  background: #0d1f2e;
+  border-radius: 999px;
+}
+
+.wp-log-dialog .issue-list::-webkit-scrollbar-thumb {
+  background: #2d4f68;
+  border-radius: 999px;
+}
